@@ -1,5 +1,6 @@
 package com.example.criminalintent
 
+import android.icu.text.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +9,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.criminalintent.databinding.ListItemCrimeBinding
+import java.util.Date
 
 class CrimeListAdapter : ListAdapter<Crime,
         RecyclerView.ViewHolder>(CrimeDiffCallback()) {
@@ -43,7 +45,7 @@ class CrimeListAdapter : ListAdapter<Crime,
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(crime: Crime) {
             binding.crimeTitle.text = crime.title
-            binding.crimeDate.text = crime.date.toString()
+            binding.crimeDate.text = formatDate(crime.date)
 
             binding.root.setOnClickListener {
                 Toast.makeText(
@@ -68,5 +70,10 @@ class CrimeListAdapter : ListAdapter<Crime,
                 return CrimeHolder(binding)
             }
         }
+        private fun formatDate(date: Date): String {
+            val dateFormat = DateFormat.getPatternInstance("EEEEdMMMy")
+            return dateFormat.format(date)
+        }
     }
+
 }

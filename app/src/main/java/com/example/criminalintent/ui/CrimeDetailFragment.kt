@@ -1,4 +1,4 @@
-package com.example.criminalintent
+package com.example.criminalintent.ui
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,6 +8,7 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 
 import com.example.criminalintent.databinding.FragmentCrimeDetailBinding
+import com.example.criminalintent.domain.Crime
 import java.util.*
 
 class CrimeDetailFragment: Fragment() {

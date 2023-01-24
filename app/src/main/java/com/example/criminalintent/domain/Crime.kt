@@ -1,4 +1,4 @@
-package com.example.criminalintent
+package com.example.criminalintent.domain
 
 import java.util.*
 

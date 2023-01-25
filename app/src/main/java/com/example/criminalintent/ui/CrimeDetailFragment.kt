@@ -8,16 +8,18 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 
 import com.example.criminalintent.databinding.FragmentCrimeDetailBinding
-import com.example.criminalintent.domain.Crime
+import com.example.criminalintent.database.Crime
 import java.util.*
 
-class CrimeDetailFragment: Fragment() {
+class CrimeDetailFragment : Fragment() {
+    
     lateinit var crime: Crime
-    private  var _binding: FragmentCrimeDetailBinding? = null
+    private var _binding: FragmentCrimeDetailBinding? = null
     private val binding
         get() = checkNotNull(_binding) {
             "Cannot access binding because it is null. Is the view visible?"
         }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -25,8 +27,7 @@ class CrimeDetailFragment: Fragment() {
             id = UUID.randomUUID(),
             title = "",
             date = Date(),
-            isSolved = false,
-            requiresPolice = false
+            isSolved = false
         )
     }
 
@@ -44,7 +45,7 @@ class CrimeDetailFragment: Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.apply {
-            crimeTitle.doOnTextChanged {text, _, _, _ ->
+            crimeTitle.doOnTextChanged { text, _, _, _ ->
                 crime = crime.copy(title = text.toString())
             }
             crimeDate.apply {
@@ -57,6 +58,7 @@ class CrimeDetailFragment: Fragment() {
         }
 
     }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

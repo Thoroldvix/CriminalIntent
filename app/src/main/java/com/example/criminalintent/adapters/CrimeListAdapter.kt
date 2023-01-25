@@ -1,6 +1,7 @@
 package com.example.criminalintent.adapters
 
 import android.icu.text.DateFormat
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,7 +10,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.criminalintent.databinding.ListItemCrimeBinding
-import com.example.criminalintent.domain.Crime
+import com.example.criminalintent.database.Crime
 import java.util.Date
 
 class CrimeListAdapter : ListAdapter<Crime,

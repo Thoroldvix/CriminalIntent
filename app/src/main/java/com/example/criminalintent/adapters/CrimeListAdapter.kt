@@ -1,19 +1,19 @@
 package com.example.criminalintent.adapters
 
 import android.icu.text.DateFormat
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.criminalintent.databinding.ListItemCrimeBinding
 import com.example.criminalintent.database.Crime
-import java.util.Date
+import com.example.criminalintent.databinding.ListItemCrimeBinding
+import java.util.*
 
-class CrimeListAdapter : ListAdapter<Crime,
+class CrimeListAdapter(
+    private val onCrimeClicked: (crimeId: UUID) -> Unit
+) : ListAdapter<Crime,
         RecyclerView.ViewHolder>(CrimeDiffCallback()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
 
@@ -25,7 +25,7 @@ class CrimeListAdapter : ListAdapter<Crime,
         when (holder) {
             is CrimeHolder -> {
                 val crime = getItem(position) as Crime
-                holder.bind(crime)
+                holder.bind(crime, onCrimeClicked)
             }
         }
     }
@@ -45,18 +45,14 @@ class CrimeListAdapter : ListAdapter<Crime,
     class CrimeHolder private constructor(
         private val binding: ListItemCrimeBinding
     ) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(crime: Crime) {
+        fun bind(crime: Crime, onCrimeClicked: (crimeId: UUID) -> Unit) {
             binding.crimeTitle.text = crime.title
             binding.crimeDate.text = formatDate(crime.date)
 
             binding.root.setOnClickListener {
-                Toast.makeText(
-                    binding.root.context,
-                    "${crime.title} clicked!",
-                    Toast.LENGTH_SHORT
-                ).show()
-
+                onCrimeClicked(crime.id)
             }
+
             binding.crimeSolved.visibility = if (crime.isSolved) {
                 View.VISIBLE
             } else {

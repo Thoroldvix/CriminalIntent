@@ -1,5 +1,6 @@
 package com.example.criminalintent.ui
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,6 +10,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -23,6 +25,7 @@ import com.example.criminalintent.viewmodels.CrimeDetailViewModelFactory
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import java.io.Serializable
 import java.util.*
 
 
@@ -44,17 +47,8 @@ class CrimeDetailFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        requireActivity().onBackPressedDispatcher.addCallback(this) {
-            if (checkIfCrimeTitleIsEmpty()) {
-                Snackbar.make(binding.root,
-                    "You should provide a title for the crime",
-                    Snackbar.LENGTH_SHORT)
-                    .show()
-            } else {
-                findNavController().popBackStack()
-            }
-            isEnabled = true
-        }
+        handleBackButtonPress()
+
     }
 
 
@@ -69,19 +63,20 @@ class CrimeDetailFragment : Fragment() {
         return binding.root
     }
 
-    private fun checkIfCrimeTitleIsEmpty(): Boolean {
-        var isEmpty = false
-        viewLifecycleOwner.lifecycleScope.launch {
-            crimeDetailViewModel.crime.collect { crime ->
-                crime?.let {
-                    if (it.title.isEmpty()) {
-                        isEmpty = true
-                    }
-                }
+    private fun handleBackButtonPress() {
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
+            if (crimeDetailViewModel.checkIfCrimeTitleIsEmpty()) {
+                Snackbar.make(binding.root,
+                    "You should provide a title for the crime",
+                    Snackbar.LENGTH_SHORT)
+                    .show()
+            } else {
+                findNavController().popBackStack()
             }
+            isEnabled = true
         }
-        return isEmpty
     }
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -91,9 +86,6 @@ class CrimeDetailFragment : Fragment() {
                 crimeDetailViewModel.updateCrime { oldCrime ->
                     oldCrime.copy(title = text.toString())
                 }
-            }
-            crimeDate.apply {
-                isEnabled = false
             }
             crimeSolved.setOnCheckedChangeListener { _, isChecked ->
                 crimeDetailViewModel.updateCrime { oldCrime ->
@@ -112,6 +104,10 @@ class CrimeDetailFragment : Fragment() {
                 }
             }
         }
+        setFragmentResultListener(DatePickerFragment.REQUEST_KEY_DATE) { _, bundle ->
+            val newDate = bundle.getSerializable(DatePickerFragment.BUNDLE_KEY_DATE) as Date
+            crimeDetailViewModel.updateCrime { it.copy(date = newDate) }
+        }
 
     }
 
@@ -121,7 +117,11 @@ class CrimeDetailFragment : Fragment() {
                 crimeTitle.setText(crime.title)
             }
             crimeDate.text = crime.date.toString()
+            crimeDate.setOnClickListener {
+                findNavController().navigate(CrimeDetailFragmentDirections.selectDate(crime.date))
+            }
             crimeSolved.isChecked = crime.isSolved
+
         }
     }
 

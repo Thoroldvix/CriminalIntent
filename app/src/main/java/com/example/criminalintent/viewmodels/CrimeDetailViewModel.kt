@@ -2,6 +2,7 @@ package com.example.criminalintent.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.example.criminalintent.database.Crime
 import com.example.criminalintent.repository.CrimeRepository
@@ -12,12 +13,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-class CrimeDetailViewModel(crimeId: UUID): ViewModel() {
+class CrimeDetailViewModel(crimeId: UUID) : ViewModel() {
 
     private val crimeRepository = CrimeRepository.get()
 
     private val _crime: MutableStateFlow<Crime?> = MutableStateFlow(null)
-        val crime:StateFlow<Crime?> = _crime.asStateFlow()
+    val crime: StateFlow<Crime?> = _crime.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -33,7 +34,14 @@ class CrimeDetailViewModel(crimeId: UUID): ViewModel() {
         }
     }
 
-
+    fun checkIfCrimeTitleIsEmpty(): Boolean {
+        crime.value?.let {
+            if (it.title.isEmpty()) {
+                return true
+            }
+        }
+        return false
+    }
 
     override fun onCleared() {
         super.onCleared()
@@ -44,7 +52,7 @@ class CrimeDetailViewModel(crimeId: UUID): ViewModel() {
 
 class CrimeDetailViewModelFactory(
     private val crimeId: UUID
-): ViewModelProvider.Factory {
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return CrimeDetailViewModel(crimeId) as T
     }

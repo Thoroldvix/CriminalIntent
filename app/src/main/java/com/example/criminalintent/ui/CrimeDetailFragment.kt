@@ -1,9 +1,7 @@
 package com.example.criminalintent.ui
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.activity.addCallback
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -14,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.example.criminalintent.R
 import com.example.criminalintent.database.Crime
 import com.example.criminalintent.databinding.FragmentCrimeDetailBinding
 import com.example.criminalintent.util.formatDate
@@ -42,12 +41,33 @@ class CrimeDetailFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        setHasOptionsMenu(true)
         handleBackButtonPress()
 
     }
 
 
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.fragment_crime_detail, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.delete_crime -> {
+                deleteCrime()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    fun deleteCrime() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            crimeDetailViewModel.deleteCrime()
+            findNavController().navigate(CrimeDetailFragmentDirections.showCrimeList())
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -62,9 +82,11 @@ class CrimeDetailFragment : Fragment() {
     private fun handleBackButtonPress() {
         requireActivity().onBackPressedDispatcher.addCallback(this) {
             if (crimeDetailViewModel.checkIfCrimeTitleIsEmpty()) {
-                Snackbar.make(binding.root,
+                Snackbar.make(
+                    binding.root,
                     "You should provide a title for the crime",
-                    Snackbar.LENGTH_SHORT)
+                    Snackbar.LENGTH_SHORT
+                )
                     .show()
             } else {
                 findNavController().popBackStack()
@@ -91,9 +113,7 @@ class CrimeDetailFragment : Fragment() {
             doneButton.setOnClickListener {
                 activity?.onBackPressed()
             }
-            cancelButton.setOnClickListener {
-                cancel()
-            }
+
 
 
         }
@@ -112,11 +132,10 @@ class CrimeDetailFragment : Fragment() {
             val newDate = bundle.getSerializable(DatePickerFragment.BUNDLE_KEY_DATE) as Date
             crimeDetailViewModel.updateCrime { it.copy(date = newDate) }
         }
-        setFragmentResultListener(TimePickerFragment.REQUEST_TIME_DATE) {_, bundle ->
+        setFragmentResultListener(TimePickerFragment.REQUEST_TIME_DATE) { _, bundle ->
             val newTime = bundle.getSerializable(TimePickerFragment.BUNDLE_KEY_TIME) as Date
             crimeDetailViewModel.updateCrime { it.copy(date = newTime) }
         }
-
 
 
     }
@@ -137,12 +156,10 @@ class CrimeDetailFragment : Fragment() {
             crimeSolved.isChecked = crime.isSolved
 
 
-
         }
     }
-    private fun cancel() {
-        findNavController().popBackStack()
-    }
+
+
 
     override fun onDestroyView() {
         super.onDestroyView()

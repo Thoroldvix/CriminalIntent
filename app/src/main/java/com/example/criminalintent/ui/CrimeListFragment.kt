@@ -2,6 +2,7 @@ package com.example.criminalintent.ui
 
 import android.os.Bundle
 import android.view.*
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -84,13 +85,31 @@ class CrimeListFragment : Fragment() {
                     )
                 }
                 binding.crimeRecyclerView.adapter = adapter
+
                 crimeListViewModel.crimes.collect { crimes ->
-                    adapter.submitList(crimes)
+                    if (crimes.isEmpty()) {
+                        hideList()
+                    } else {
+                        adapter.submitList(crimes)
+                        showList()
+                    }
                 }
             }
         }
+        binding.addButton.setOnClickListener {
+            showNewCrime()
+        }
     }
 
+    private fun showList() {
+        binding.crimeRecyclerView.visibility = View.VISIBLE
+        binding.placeholder.visibility = View.GONE
+    }
+
+    private fun hideList() {
+        binding.crimeRecyclerView.visibility = View.GONE
+        binding.placeholder.visibility = View.VISIBLE
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

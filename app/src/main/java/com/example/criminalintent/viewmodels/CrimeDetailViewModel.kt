@@ -33,7 +33,9 @@ class CrimeDetailViewModel(crimeId: UUID) : ViewModel() {
             }
         }
     }
-
+    suspend fun deleteCrime() {
+        crime.value?.let { crimeRepository.deleteCrime(it) }
+    }
     fun checkIfCrimeTitleIsEmpty(): Boolean {
         crime.value?.let {
             if (it.title.isEmpty()) {

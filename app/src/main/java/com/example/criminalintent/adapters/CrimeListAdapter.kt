@@ -1,6 +1,6 @@
 package com.example.criminalintent.adapters
 
-import android.icu.text.DateFormat
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,6 +9,8 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.criminalintent.database.Crime
 import com.example.criminalintent.databinding.ListItemCrimeBinding
+import com.example.criminalintent.util.formatDate
+import com.example.criminalintent.util.formatDateTime
 import java.util.*
 
 class CrimeListAdapter(
@@ -47,7 +49,7 @@ class CrimeListAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(crime: Crime, onCrimeClicked: (crimeId: UUID) -> Unit) {
             binding.crimeTitle.text = crime.title
-            binding.crimeDate.text = formatDate(crime.date)
+            binding.crimeDate.text = crime.date.formatDateTime()
 
             binding.root.setOnClickListener {
                 onCrimeClicked(crime.id)
@@ -68,10 +70,7 @@ class CrimeListAdapter(
                 return CrimeHolder(binding)
             }
         }
-        private fun formatDate(date: Date): String {
-            val dateFormat = DateFormat.getPatternInstance("EEEEdMMMy")
-            return dateFormat.format(date)
-        }
+
     }
 
 }

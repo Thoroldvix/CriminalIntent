@@ -1,12 +1,9 @@
 package com.example.criminalintent.ui
 
-import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -17,15 +14,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-
-import com.example.criminalintent.databinding.FragmentCrimeDetailBinding
 import com.example.criminalintent.database.Crime
+import com.example.criminalintent.databinding.FragmentCrimeDetailBinding
+import com.example.criminalintent.util.formatDate
+import com.example.criminalintent.util.formatTime
 import com.example.criminalintent.viewmodels.CrimeDetailViewModel
 import com.example.criminalintent.viewmodels.CrimeDetailViewModelFactory
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import java.io.Serializable
 import java.util.*
 
 
@@ -108,6 +104,10 @@ class CrimeDetailFragment : Fragment() {
             val newDate = bundle.getSerializable(DatePickerFragment.BUNDLE_KEY_DATE) as Date
             crimeDetailViewModel.updateCrime { it.copy(date = newDate) }
         }
+        setFragmentResultListener(TimePickerFragment.REQUEST_TIME_DATE) {_, bundle ->
+            val newTime = bundle.getSerializable(TimePickerFragment.BUNDLE_KEY_TIME) as Date
+            crimeDetailViewModel.updateCrime { it.copy(date = newTime) }
+        }
 
     }
 
@@ -116,9 +116,13 @@ class CrimeDetailFragment : Fragment() {
             if (crimeTitle.text.toString() != crime.title) {
                 crimeTitle.setText(crime.title)
             }
-            crimeDate.text = crime.date.toString()
+            crimeDate.text = crime.date.formatDate()
             crimeDate.setOnClickListener {
                 findNavController().navigate(CrimeDetailFragmentDirections.selectDate(crime.date))
+            }
+            crimeTime.text = crime.date.formatTime()
+            crimeTime.setOnClickListener {
+                findNavController().navigate(CrimeDetailFragmentDirections.selectTime(crime.date))
             }
             crimeSolved.isChecked = crime.isSolved
 

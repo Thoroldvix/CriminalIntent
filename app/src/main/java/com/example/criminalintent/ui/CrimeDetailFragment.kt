@@ -88,6 +88,14 @@ class CrimeDetailFragment : Fragment() {
                     oldCrime.copy(isSolved = isChecked)
                 }
             }
+            doneButton.setOnClickListener {
+                activity?.onBackPressed()
+            }
+            cancelButton.setOnClickListener {
+                cancel()
+            }
+
+
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -109,6 +117,8 @@ class CrimeDetailFragment : Fragment() {
             crimeDetailViewModel.updateCrime { it.copy(date = newTime) }
         }
 
+
+
     }
 
     private fun updateUi(crime: Crime) {
@@ -126,7 +136,12 @@ class CrimeDetailFragment : Fragment() {
             }
             crimeSolved.isChecked = crime.isSolved
 
+
+
         }
+    }
+    private fun cancel() {
+        findNavController().popBackStack()
     }
 
     override fun onDestroyView() {

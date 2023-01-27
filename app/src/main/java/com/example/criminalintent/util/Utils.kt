@@ -10,16 +10,19 @@ import java.util.*
 
 
 fun Date.formatDateTime(): String {
-    return DateFormat.getPatternInstance("EEEEdMMMyhmz").format(this)
+    val dateTimeFormat = "EEEEdMMMyhmz"
+    return DateFormat.getPatternInstance(dateTimeFormat).format(this)
 }
 
 fun Date.formatDate(): String {
-    return DateFormat.getPatternInstance("EEEEdMMMy").format(this)
+    val dateFormat = "EEEEdMMMy"
+    return DateFormat.getPatternInstance(dateFormat).format(this)
 
 }
 
 fun Date.formatTime(): String {
-    return DateFormat.getPatternInstance("hmz").format(this)
+    val timeFormat = "hmz"
+    return DateFormat.getPatternInstance(timeFormat).format(this)
 }
 
 

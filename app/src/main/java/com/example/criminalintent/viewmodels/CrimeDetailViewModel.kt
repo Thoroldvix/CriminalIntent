@@ -2,7 +2,6 @@ package com.example.criminalintent.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.example.criminalintent.database.Crime
 import com.example.criminalintent.repository.CrimeRepository
@@ -36,7 +35,7 @@ class CrimeDetailViewModel(crimeId: UUID) : ViewModel() {
     suspend fun deleteCrime() {
         crime.value?.let { crimeRepository.deleteCrime(it) }
     }
-    fun checkIfCrimeTitleIsEmpty(): Boolean {
+    fun crimeTitleIsEmpty(): Boolean {
         crime.value?.let {
             if (it.title.isEmpty()) {
                 return true

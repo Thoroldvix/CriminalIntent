@@ -1,8 +1,14 @@
 package com.example.criminalintent.ui
 
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
+import android.net.Uri
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.view.*
 import androidx.activity.addCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
@@ -32,6 +38,12 @@ class CrimeDetailFragment : Fragment() {
         CrimeDetailViewModelFactory(args.crimeId)
     }
 
+    private val selectSuspect = registerForActivityResult(
+        ActivityResultContracts.PickContact()
+    ) { uri: Uri? ->
+        uri?.let { parseContactSelection(it) }
+    }
+
     private var _binding: FragmentCrimeDetailBinding? = null
 
     private val binding
@@ -58,16 +70,14 @@ class CrimeDetailFragment : Fragment() {
                 deleteCrime()
                 true
             }
+            R.id.confirm -> {
+                activity?.onBackPressed()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    fun deleteCrime() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            crimeDetailViewModel.deleteCrime()
-            findNavController().navigate(CrimeDetailFragmentDirections.showCrimeList())
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -77,22 +87,6 @@ class CrimeDetailFragment : Fragment() {
         _binding = FragmentCrimeDetailBinding.inflate(layoutInflater, container, false)
 
         return binding.root
-    }
-
-    private fun handleBackButtonPress() {
-        requireActivity().onBackPressedDispatcher.addCallback(this) {
-            if (crimeDetailViewModel.checkIfCrimeTitleIsEmpty()) {
-                Snackbar.make(
-                    binding.root,
-                    "You should provide a title for the crime",
-                    Snackbar.LENGTH_SHORT
-                )
-                    .show()
-            } else {
-                findNavController().popBackStack()
-            }
-            isEnabled = true
-        }
     }
 
 
@@ -110,10 +104,14 @@ class CrimeDetailFragment : Fragment() {
                     oldCrime.copy(isSolved = isChecked)
                 }
             }
-            doneButton.setOnClickListener {
-                activity?.onBackPressed()
+            crimeSuspect.setOnClickListener {
+                selectSuspect.launch(null)
             }
-
+            val selectSuspectIntent = selectSuspect.contract.createIntent(
+                requireContext(),
+                null
+            )
+            crimeSuspect.isEnabled = canResolveIntent(selectSuspectIntent)
 
 
         }
@@ -155,12 +153,110 @@ class CrimeDetailFragment : Fragment() {
             }
             crimeSolved.isChecked = crime.isSolved
 
+            crimeReport.setOnClickListener {
+                if (crimeDetailViewModel.crimeTitleIsEmpty()) {
+                    showEmptyTitleSnackbar()
+                } else {
+                    startImplicitIntent(crime)
+                }
+            }
+            crimeSuspect.text = crime.suspect.ifEmpty {
+                getString(R.string.crime_suspect_text)
+            }
 
         }
     }
 
+    private fun startImplicitIntent(crime: Crime) {
+        val reportIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, getCrimeReport(crime))
+            putExtra(
+                Intent.EXTRA_SUBJECT,
+                getString(R.string.crime_report_subject)
+            )
+        }
+        val chooserIntent = Intent.createChooser(
+            reportIntent,
+            getString(R.string.send_report)
+        )
+        startActivity(chooserIntent)
+    }
 
 
+    private fun deleteCrime() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            crimeDetailViewModel.deleteCrime()
+            findNavController().navigate(CrimeDetailFragmentDirections.showCrimeList())
+        }
+    }
+
+    private fun handleBackButtonPress() {
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
+            if (crimeDetailViewModel.crimeTitleIsEmpty()) {
+                showEmptyTitleSnackbar()
+            } else {
+                findNavController().popBackStack()
+            }
+            isEnabled = true
+        }
+    }
+
+    private fun showEmptyTitleSnackbar() {
+        Snackbar.make(
+            binding.root,
+            "You should provide a title for the crime",
+            Snackbar.LENGTH_SHORT
+        ).show()
+    }
+
+    private fun getCrimeReport(crime: Crime): String {
+        val solvedString = if (crime.isSolved) {
+            getString(R.string.crime_report_solved)
+        } else {
+            getString(R.string.crime_report_unsolved)
+        }
+        val dateString = crime.date.formatDate()
+        val suspectText = if (crime.suspect.isBlank()) {
+            getString(R.string.crime_report_no_suspect)
+        } else {
+            getString(R.string.crime_report_suspect, crime.suspect)
+        }
+
+        return getString(
+            R.string.crime_report,
+            crime.title,
+            dateString,
+            solvedString,
+            suspectText
+        )
+    }
+
+    private fun parseContactSelection(contactUri: Uri) {
+        val queryFields = arrayOf(ContactsContract.Contacts.DISPLAY_NAME)
+
+        val queryCursor = requireActivity().contentResolver
+            .query(contactUri, queryFields, null, null, null)
+
+        queryCursor?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val suspect = cursor.getString(0)
+                crimeDetailViewModel.updateCrime { oldCrime->
+                    oldCrime.copy(suspect = suspect)
+                }
+            }
+        }
+
+    }
+    private fun canResolveIntent (intent: Intent): Boolean {
+        val packageManager: PackageManager = requireActivity().packageManager
+        val resolveActivity: ResolveInfo? =
+            packageManager.resolveActivity(
+                intent,
+                PackageManager.MATCH_DEFAULT_ONLY
+            )
+        return resolveActivity != null
+    }
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

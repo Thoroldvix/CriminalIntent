@@ -48,4 +48,6 @@
         android:layout_height="wrap_content"
         android:text="@string/crime_report_text"/>
 
+
+
 </LinearLayout>
